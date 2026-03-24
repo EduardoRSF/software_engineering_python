@@ -1,0 +1,13 @@
+[vicsek_simulator]
+
+name = "vicsek_simulator"
+version = "1.0.0"
+description = "My first python package"
+requires-python = ">=3.8"
+authors = [
+    {name = "Eduardo Rodrigues-Silva", email = "eduardo.rodriguessilvafilho@dlr.de"}
+]
+dependencies = [
+    "numpy",
+    "matplotlib"
+]
