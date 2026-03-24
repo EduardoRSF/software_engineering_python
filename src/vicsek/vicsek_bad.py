@@ -4,97 +4,94 @@ from matplotlib.animation import FuncAnimation
 import time
 import math
 
-plt.rcParams['animation.embed_limit'] = 300
+class VicsekModel:
 
-n = 200
-d = 0.01
-v = 0.01
-dt = 1
-eta = 0.1
+    n = 200
+    d = 0.01
+    v = 0.01
+    dt = 1
+    eta = 0.1
+    r = np.random.random((n, 2))
+    theta = np.random.random(n)
+    counter = 0
 
-r = np.random.random((n, 2))
-theta = np.random.random(n)
+    x = r[:, 0]
+    y = r[:, 1]
+    u = np.cos(2 * np.pi * theta)
+    vv = np.sin(2 * np.pi * theta)
 
-fig, ax = plt.subplots(figsize=(6, 6))
+    plt.rcParams['animation.embed_limit'] = 300
 
-x = r[:, 0]
-y = r[:, 1]
-u = np.cos(2 * np.pi * theta)
-vv = np.sin(2 * np.pi * theta)
+    fig, ax = plt.subplots(figsize=(6, 6))
 
-q = ax.quiver(x, y, u, vv, angles='xy')
-ax.set_xlim(0, 1)
-ax.set_ylim(0, 1)
-ax.set_title("Vicsek Model")
+    q = ax.quiver(x, y, u, vv, angles='xy')
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.set_title("Vicsek Model")
 
-counter = 0
+    def update_model(self):
 
+        for i in range(self.n):
+            sum_sin = 0
+            sum_cos = 0
+            neighbours = 0
 
-def distance(p1, p2):
-    return np.sqrt(((p1 - p2) ** 2).sum())
+            for j in range(self.n):
+                if i != j:
+                    if self.distance(self.r[i], self.r[j]) < self.d:
+                        theta_j = 2 * np.pi * self.theta[j]
+                        sum_sin = sum_sin + np.sin(theta_j)
+                        sum_cos = sum_cos + np.cos(theta_j)
+                        neighbours = neighbours + 1
 
+            if neighbours > 0:
+                avg_theta = np.arctan2(sum_sin / neighbours, sum_cos / neighbours)
+                self.theta[i] = (avg_theta / (2 * np.pi)) + self.eta * (np.random.rand() - 0.5)
 
-def update_model():
-    global r, theta, counter
+            dx = self.v * self.dt * np.cos(2 * np.pi * self.theta[i])
+            dy = self.v * self.dt * np.sin(2 * np.pi * self.theta[i])
 
-    for i in range(n):
-        sum_sin = 0
-        sum_cos = 0
-        neighbours = 0
+            self.r[i, 0] = self.r[i, 0] + dx
+            self.r[i, 1] = self.r[i, 1] + dy
 
-        for j in range(n):
-            if i != j:
-                if distance(r[i], r[j]) < d:
-                    theta_j = 2 * np.pi * theta[j]
-                    sum_sin = sum_sin + np.sin(theta_j)
-                    sum_cos = sum_cos + np.cos(theta_j)
-                    neighbours = neighbours + 1
+            if self.r[i, 0] > 1:
+                self.r[i, 0] = 0
+            if self.r[i, 1] > 1:
+                self.r[i, 1] = 0
+            if self.r[i, 0] < 0:
+                self.r[i, 0] = 1
+            if self.r[i, 1] < 0:
+                self.r[i, 1] = 1
 
-        if neighbours > 0:
-            avg_theta = np.arctan2(sum_sin / neighbours, sum_cos / neighbours)
-            theta[i] = (avg_theta / (2 * np.pi)) + eta * (np.random.rand() - 0.5)
+            self.counter = self.counter + 1
 
-        dx = v * dt * np.cos(2 * np.pi * theta[i])
-        dy = v * dt * np.sin(2 * np.pi * theta[i])
+    def distance(self, p1, p2):
+        return np.sqrt(((p1 - p2) ** 2).sum())
 
-        r[i, 0] = r[i, 0] + dx
-        r[i, 1] = r[i, 1] + dy
+    def animate(self, frame):
 
-        if r[i, 0] > 1:
-            r[i, 0] = 0
-        if r[i, 1] > 1:
-            r[i, 1] = 0
-        if r[i, 0] < 0:
-            r[i, 0] = 1
-        if r[i, 1] < 0:
-            r[i, 1] = 1
+        self.update_model()
 
-        counter = counter + 1
+        x = []
+        y = []
+        u = []
+        vv = []
 
+        for i in range(self.n):
+            x.append(self.r[i, 0])
+            y.append(self.r[i, 1])
+            u.append(np.cos(2 * np.pi * self.theta[i]))
+            vv.append(np.sin(2 * np.pi * self.theta[i]))
 
-def animate(frame):
-    global q
+        self.q.set_offsets(np.c_[x, y])
+        self.q.set_UVC(u, vv)
 
-    update_model()
+        print("frame", frame, "counter", self.counter)
 
-    x = []
-    y = []
-    u = []
-    vv = []
+        return self.q,
 
-    for i in range(n):
-        x.append(r[i, 0])
-        y.append(r[i, 1])
-        u.append(np.cos(2 * np.pi * theta[i]))
-        vv.append(np.sin(2 * np.pi * theta[i]))
+if __name__ == "__main__":
 
-    q.set_offsets(np.c_[x, y])
-    q.set_UVC(u, vv)
-
-    print("frame", frame, "counter", counter)
-
-    return q,
-
-
-ani = FuncAnimation(fig, animate, frames=200, interval=50, blit=True)
-plt.show()
+    vicsek_model = VicsekModel()
+    ani = FuncAnimation(vicsek_model.fig, vicsek_model.animate, frames=200, interval=50, blit=True)
+    plt.show()
