@@ -6,11 +6,11 @@ import math
 
 plt.rcParams['animation.embed_limit'] = 300
 
-n = 200
-d = 0.01
-v = 0.01
-dt = 1
-eta = 0.1
+n = 200 # number of objects
+d = 0.01 # step size
+v = 0.01 # velocity
+dt = 1 # temporal step
+eta = 0.1 # angle
 
 r = np.random.random((n, 2))
 theta = np.random.random(n)
@@ -31,10 +31,27 @@ counter = 0
 
 
 def distance(p1, p2):
+    """Computes the distance between objects.
+
+    Args:
+        p1: object 1
+        p2: object 2
+        
+    Returns:
+        distance between p1 and p2
+    """
     return np.sqrt(((p1 - p2) ** 2).sum())
 
 
 def update_model():
+    """Updates the location of objects.
+
+    Args:
+        
+        
+    Returns:
+       
+    """
     global r, theta, counter
 
     for i in range(n):
@@ -73,6 +90,14 @@ def update_model():
 
 
 def animate(frame):
+    """Animates movement of objects .
+
+    Args:
+        frame:
+        
+    Returns:
+        
+    """  
     global q
 
     update_model()
@@ -95,6 +120,6 @@ def animate(frame):
 
     return q,
 
-
+if __name__ == "__main__":
 ani = FuncAnimation(fig, animate, frames=200, interval=50, blit=True)
 plt.show()
