@@ -1,5 +1,4 @@
-[vicsek_simulator]
-
+[project]
 name = "vicsek_simulator"
 version = "1.0.0"
 description = "My first python package"
