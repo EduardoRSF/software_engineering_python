@@ -1,106 +1,104 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import time
-import math
 import click
 
-plt.rcParams['animation.embed_limit'] = 300
 
-counter = 0
+class VicsekModel:
 
-@click.command()
-@click.option('-c', '--count', default=200, help='Number')
-def init_model(count):
-    n = count
-    d = 0.01
-    v = 0.01
-    dt = 1
-    eta = 0.1
+    def __init__(self, d=0.01, v=0.01, dt=1, eta=0.1):
+        self.counter = 0
+        self.d = d
+        self.v = v
+        self.dt = dt
+        self.eta = eta
 
-    r = np.random.random((n, 2))
-    theta = np.random.random(n)
+    def init_model(self, count):
+        self.n = count
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+        self.r = np.random.random((self.n, 2))
+        self.theta = np.random.random(self.n)
 
-    x = r[:, 0]
-    y = r[:, 1]
-    u = np.cos(2 * np.pi * theta)
-    vv = np.sin(2 * np.pi * theta)
+        self.fig, self.ax = plt.subplots(figsize=(6, 6))
 
-    q = ax.quiver(x, y, u, vv, angles='xy')
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.set_title("Vicsek Model")
+        self.x = self.r[:, 0]
+        self.y = self.r[:, 1]
+        self.u = np.cos(2 * np.pi * self.theta)
+        self.vv = np.sin(2 * np.pi * self.theta)
 
+        self.q = self.ax.quiver(self.x, self.y, self.u, self.vv, angles='xy')
+        self.ax.set_xlim(0, 1)
+        self.ax.set_ylim(0, 1)
+        self.ax.set_title("Vicsek Model")
 
-
+    @staticmethod
     def distance(p1, p2):
         return np.sqrt(((p1 - p2) ** 2).sum())
 
-
-    def update_model():
-        global counter
-        for i in range(n):
+    def update_model(self):
+        for i in range(self.n):
             sum_sin = 0
             sum_cos = 0
             neighbours = 0
 
-            for j in range(n):
+            for j in range(self.n):
                 if i != j:
-                    if distance(r[i], r[j]) < d:
-                        theta_j = 2 * np.pi * theta[j]
+                    if VicsekModel.distance(self.r[i], self.r[j]) < self.d:
+                        theta_j = 2 * np.pi * self.theta[j]
                         sum_sin = sum_sin + np.sin(theta_j)
                         sum_cos = sum_cos + np.cos(theta_j)
                         neighbours = neighbours + 1
 
             if neighbours > 0:
                 avg_theta = np.arctan2(sum_sin / neighbours, sum_cos / neighbours)
-                theta[i] = (avg_theta / (2 * np.pi)) + eta * (np.random.rand() - 0.5)
+                self.theta[i] = (avg_theta / (2 * np.pi)) + self.eta * (np.random.rand() - 0.5)
 
-            dx = v * dt * np.cos(2 * np.pi * theta[i])
-            dy = v * dt * np.sin(2 * np.pi * theta[i])
+            dx = self.v * self.dt * np.cos(2 * np.pi * self.theta[i])
+            dy = self.v * self.dt * np.sin(2 * np.pi * self.theta[i])
 
-            r[i, 0] = r[i, 0] + dx
-            r[i, 1] = r[i, 1] + dy
+            self.r[i, 0] = self.r[i, 0] + dx
+            self.r[i, 1] = self.r[i, 1] + dy
 
-            if r[i, 0] > 1:
-                r[i, 0] = 0
-            if r[i, 1] > 1:
-                r[i, 1] = 0
-            if r[i, 0] < 0:
-                r[i, 0] = 1
-            if r[i, 1] < 0:
-                r[i, 1] = 1
+            if self.r[i, 0] > 1:
+                self.r[i, 0] = 0
+            if self.r[i, 1] > 1:
+                self.r[i, 1] = 0
+            if self.r[i, 0] < 0:
+                self.r[i, 0] = 1
+            if self.r[i, 1] < 0:
+                self.r[i, 1] = 1
 
-            counter = counter + 1
+            self.counter += 1
 
+    def animate(self, frame):
 
-    def animate(frame):
+        self.update_model()
 
-        update_model()
+        self.x = []
+        self.y = []
+        self.u = []
+        self.vv = []
 
-        x = []
-        y = []
-        u = []
-        vv = []
+        for i in range(self.n):
+            self.x.append(self.r[i, 0])
+            self.y.append(self.r[i, 1])
+            self.u.append(np.cos(2 * np.pi * self.theta[i]))
+            self.vv.append(np.sin(2 * np.pi * self.theta[i]))
 
-        for i in range(n):
-            x.append(r[i, 0])
-            y.append(r[i, 1])
-            u.append(np.cos(2 * np.pi * theta[i]))
-            vv.append(np.sin(2 * np.pi * theta[i]))
+        self.q.set_offsets(np.c_[self.x, self.y])
+        self.q.set_UVC(self.u, self.vv)
 
-        q.set_offsets(np.c_[x, y])
-        q.set_UVC(u, vv)
+        print("frame", frame, "counter", self.counter)
 
-        print("frame", frame, "counter", counter)
+        return self.q,
 
-        return q,
-
-
-    ani = FuncAnimation(fig, animate, frames=200, interval=50, blit=True)
+@click.command()
+@click.option('-c', "--count", default=200, help='Number')
+def main(count):
+    vicsek_model = VicsekModel()
+    vicsek_model.init_model(count)
+    ani = FuncAnimation(vicsek_model.fig, vicsek_model.animate, frames=200, interval=50, blit=True)
     plt.show()
 
 if __name__ == "__main__":
-    init_model()
+    main()
