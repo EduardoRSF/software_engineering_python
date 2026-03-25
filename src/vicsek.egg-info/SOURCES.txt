@@ -1,9 +1,0 @@
-LICENSE
-README.md
-pyproject.toml
-src/vicsek/__init__.py
-src/vicsek/vicsek_bad.py
-src/vicsek.egg-info/PKG-INFO
-src/vicsek.egg-info/SOURCES.txt
-src/vicsek.egg-info/dependency_links.txt
-src/vicsek.egg-info/top_level.txt
