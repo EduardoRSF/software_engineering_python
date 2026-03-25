@@ -6,12 +6,11 @@ import numpy as np
 def test_main():
   assert(True)
 
-def test_figure():
+def test_figure(tmp_path):
   vicsek_model = VicsekModel()
   vicsek_model.init_model(200)
   ani = FuncAnimation(vicsek_model.fig, vicsek_model.animate, frames=20, interval=50, blit=True)
-  outputfile = "animation.gif"
-  #output_path.parent.mkdir(parents=True, exist_ok=True)
+  outputfile = (os.path.join(tmp_path, 'myfile.tiff'))
   ani.save(outputfile, writer="pillow")
 
   assert(os.path.exists(outputfile))
